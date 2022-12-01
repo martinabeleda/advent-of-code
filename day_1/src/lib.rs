@@ -25,16 +25,10 @@ pub fn part_b(content: &str) -> i64 {
             .sum();
         heap.push(calories);
     }
-
-    let mut max: i64 = 0;
-    for _ in 0..3 {
-        let val = match heap.pop() {
-            Some(x) => x,
-            None => 0,
-        };
-        max = max + val;
-    }
-    max
+    let mut vec = heap.into_sorted_vec();
+    vec.reverse();
+    vec.truncate(3);
+    vec.into_iter().sum()
 }
 
 #[cfg(test)]
