@@ -104,8 +104,18 @@ pub fn part_b(input: &str) -> i64 {
 #[cfg(test)]
 mod tests {
     #[test]
+    fn part_a_sample() {
+        assert_eq!(super::part_a(include_str!("sample.txt")), 15);
+    }
+
+    #[test]
     fn part_a() {
         assert_eq!(super::part_a(include_str!("input.txt")), 13924);
+    }
+
+    #[test]
+    fn part_b_sample() {
+        assert_eq!(super::part_b(include_str!("sample.txt")), 12);
     }
 
     #[test]
