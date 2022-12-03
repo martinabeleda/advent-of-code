@@ -117,6 +117,7 @@ pub fn part_b(input: &str) -> usize {
     }
     score
 }
+
 #[cfg(test)]
 mod tests {
     #[test]
