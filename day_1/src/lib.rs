@@ -2,7 +2,7 @@ pub fn part_a(input: &str) -> usize {
     input
         .split("\n\n")
         .map(|x| {
-            x.lines().flat_map(str::parse::<usize>).sum::<usize>()
+            x.lines().flat_map(str::parse::<usize>).sum()
         })
         .max()
         .unwrap()
@@ -12,7 +12,7 @@ pub fn part_b(input: &str) -> usize {
     let mut vec = input
         .split("\n\n")
         .map(|x| {
-            x.lines().flat_map(str::parse::<usize>).sum::<usize>()
+            x.lines().flat_map(str::parse::<usize>).sum()
         })
         .collect::<Vec<usize>>();
 
