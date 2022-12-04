@@ -25,10 +25,9 @@ pub fn part_a(input: &str) -> usize {
 pub fn part_b(input: &str) -> usize {
     let mut total: usize = 0;
     for group in &input.lines().chunks(3) {
-        let mut sets: Vec<HashSet<char>> = Vec::new();
-        for line in group {
-            sets.push(line.chars().collect::<HashSet<_>>());
-        }
+        let sets = group
+            .map(move |line| line.chars().collect::<HashSet<char>>())
+            .collect::<Vec<HashSet<char>>>();
 
         let intersection = sets.iter().skip(1).fold(sets[0].clone(), |acc, hs| {
             acc.intersection(hs).cloned().collect()
