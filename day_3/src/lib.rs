@@ -1,14 +1,6 @@
 use itertools::Itertools;
 use std::collections::HashSet;
 
-fn set_from_line(line: &str) -> HashSet<char> {
-    let mut set = HashSet::new();
-    for char in line.chars() {
-        set.insert(char);
-    }
-    set
-}
-
 fn priority(c: char) -> usize {
     if c.is_lowercase() {
         c as usize - 96
@@ -18,16 +10,16 @@ fn priority(c: char) -> usize {
 }
 
 pub fn part_a(input: &str) -> usize {
-    let mut total: usize = 0;
-    for line in input.lines() {
-        let (left, right) = line.split_at(line.len() / 2);
-        let left_contents = set_from_line(left);
-        let right_contents = set_from_line(right);
-        let char = left_contents.intersection(&right_contents).next().unwrap();
-        let val = priority(*char);
-        total = total + val;
-    }
-    total
+    input
+        .lines()
+        .map(|line| {
+            let (left, right) = line.split_at(line.len() / 2);
+            let left = left.chars().collect::<HashSet<_>>();
+            let right = right.chars().collect::<HashSet<_>>();
+            let char = left.intersection(&right).next().unwrap();
+            priority(*char)
+        })
+        .sum()
 }
 
 pub fn part_b(input: &str) -> usize {
@@ -35,7 +27,7 @@ pub fn part_b(input: &str) -> usize {
     for group in &input.lines().chunks(3) {
         let mut sets: Vec<HashSet<char>> = Vec::new();
         for line in group {
-            sets.push(set_from_line(line))
+            sets.push(line.chars().collect::<HashSet<_>>());
         }
 
         let intersection = sets.iter().skip(1).fold(sets[0].clone(), |acc, hs| {
