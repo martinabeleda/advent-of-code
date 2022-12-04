@@ -1,4 +1,4 @@
-use itertools::Itertools;
+#![feature(iter_array_chunks)]
 use std::collections::HashSet;
 
 fn priority(c: char) -> usize {
@@ -23,24 +23,27 @@ pub fn part_a(input: &str) -> usize {
 }
 
 pub fn part_b(input: &str) -> usize {
-    let mut total: usize = 0;
-    for group in &input.lines().chunks(3) {
-        let sets = group
-            .map(move |line| line.chars().collect::<HashSet<char>>())
-            .collect::<Vec<HashSet<char>>>();
-        total += priority(
-            *sets
+    input
+        .lines()
+        .array_chunks::<3>()
+        .map(|group| {
+            let sets = group
                 .iter()
-                .skip(1)
-                .fold(sets[0].clone(), |acc, hs| {
-                    acc.intersection(hs).cloned().collect()
-                })
-                .iter()
-                .next()
-                .unwrap(),
-        );
-    }
-    total
+                .map(move |line| line.chars().collect::<HashSet<char>>())
+                .collect::<Vec<HashSet<char>>>();
+            priority(
+                *sets
+                    .iter()
+                    .skip(1)
+                    .fold(sets[0].clone(), |acc, hs| {
+                        acc.intersection(hs).cloned().collect()
+                    })
+                    .iter()
+                    .next()
+                    .unwrap(),
+            )
+        })
+        .sum()
 }
 
 #[cfg(test)]
