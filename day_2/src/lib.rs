@@ -3,19 +3,9 @@ use std::{cmp::Ordering, cmp::PartialOrd, string::ParseError};
 
 #[derive(Debug, PartialEq)]
 enum Shape {
-    Rock,
-    Paper,
-    Scissors,
-}
-
-impl Shape {
-    fn score(&self) -> usize {
-        match self {
-            Shape::Rock => 1,
-            Shape::Paper => 2,
-            Shape::Scissors => 3,
-        }
-    }
+    Rock = 1,
+    Paper = 2,
+    Scissors = 3,
 }
 
 impl FromStr for Shape {
@@ -29,7 +19,7 @@ impl FromStr for Shape {
             "X" => Ok(Self::Rock),
             "Y" => Ok(Self::Paper),
             "Z" => Ok(Self::Scissors),
-            _ => panic!("Problem parsing hand shape: {:?}", s),
+            _ => panic!("Problem parsing hand Shape: {:?}", s),
         }
     }
 }
@@ -83,39 +73,39 @@ fn outcome_from_game(our: &Shape, their: &Shape) -> Outcome {
 }
 
 pub fn part_a(input: &str) -> usize {
-    let mut score: usize = 0;
-    for line in input.trim().split("\n") {
-        let mut split = line.split(" ");
-        let theirs = split.next().unwrap().parse::<Shape>().unwrap();
-        let ours = split.next().unwrap().parse::<Shape>().unwrap();
-
-        let outcome = outcome_from_game(&ours, &theirs);
-        score = score + outcome as usize + ours.score();
-    }
-    score
+    input
+        .lines()
+        .map(|line| {
+            let mut split = line.split(" ");
+            let theirs = split.next().unwrap().parse::<Shape>().unwrap();
+            let ours = split.next().unwrap().parse::<Shape>().unwrap();
+            let outcome = outcome_from_game(&ours, &theirs);
+            outcome as usize + ours as usize
+        })
+        .sum()
 }
 
 pub fn part_b(input: &str) -> usize {
-    let mut score: usize = 0;
-    for line in input.trim().split("\n") {
-        let mut split = line.split(" ");
-        let theirs = split.next().unwrap().parse::<Shape>().unwrap();
-        let outcome = split.next().unwrap().parse::<Outcome>().unwrap();
-
-        let ours = match (theirs, &outcome) {
-            (Shape::Rock, Outcome::Win) => Shape::Paper,
-            (Shape::Rock, Outcome::Draw) => Shape::Rock,
-            (Shape::Rock, Outcome::Lose) => Shape::Scissors,
-            (Shape::Paper, Outcome::Win) => Shape::Scissors,
-            (Shape::Paper, Outcome::Draw) => Shape::Paper,
-            (Shape::Paper, Outcome::Lose) => Shape::Rock,
-            (Shape::Scissors, Outcome::Win) => Shape::Rock,
-            (Shape::Scissors, Outcome::Draw) => Shape::Scissors,
-            (Shape::Scissors, Outcome::Lose) => Shape::Paper,
-        };
-        score = score + outcome as usize + ours.score();
-    }
-    score
+    input
+        .lines()
+        .map(|line| {
+            let mut split = line.split(" ");
+            let theirs = split.next().unwrap().parse::<Shape>().unwrap();
+            let outcome = split.next().unwrap().parse::<Outcome>().unwrap();
+            let ours = match (theirs, &outcome) {
+                (Shape::Rock, Outcome::Win) => Shape::Paper,
+                (Shape::Rock, Outcome::Draw) => Shape::Rock,
+                (Shape::Rock, Outcome::Lose) => Shape::Scissors,
+                (Shape::Paper, Outcome::Win) => Shape::Scissors,
+                (Shape::Paper, Outcome::Draw) => Shape::Paper,
+                (Shape::Paper, Outcome::Lose) => Shape::Rock,
+                (Shape::Scissors, Outcome::Win) => Shape::Rock,
+                (Shape::Scissors, Outcome::Draw) => Shape::Scissors,
+                (Shape::Scissors, Outcome::Lose) => Shape::Paper,
+            };
+            outcome as usize + ours as usize
+        })
+        .sum()
 }
 
 #[cfg(test)]
