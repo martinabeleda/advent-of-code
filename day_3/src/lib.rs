@@ -28,13 +28,17 @@ pub fn part_b(input: &str) -> usize {
         let sets = group
             .map(move |line| line.chars().collect::<HashSet<char>>())
             .collect::<Vec<HashSet<char>>>();
-
-        let intersection = sets.iter().skip(1).fold(sets[0].clone(), |acc, hs| {
-            acc.intersection(hs).cloned().collect()
-        });
-
-        let val = priority(*intersection.iter().next().unwrap());
-        total = total + val;
+        total += priority(
+            *sets
+                .iter()
+                .skip(1)
+                .fold(sets[0].clone(), |acc, hs| {
+                    acc.intersection(hs).cloned().collect()
+                })
+                .iter()
+                .next()
+                .unwrap(),
+        );
     }
     total
 }
