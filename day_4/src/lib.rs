@@ -1,31 +1,53 @@
-pub fn part_a(input: &str) -> usize {
-    let mut sum: usize = 0;
-    for mut split in input.lines().map(|l| l.splitn(4, |c| c == '-' || c == ',')) {
-        let l1 = split.next().unwrap().parse::<usize>().unwrap();
-        let l2 = split.next().unwrap().parse::<usize>().unwrap();
-        let r1 = split.next().unwrap().parse::<usize>().unwrap();
-        let r2 = split.next().unwrap().parse::<usize>().unwrap();
+use std::str::FromStr;
 
-        if ((l1 <= r1) && (l2 >= r2)) || ((l1 >= r1) && (l2 <= r2)) {
-            sum = sum + 1;
-        }
+#[derive(Debug)]
+struct Range {
+    start: usize,
+    end: usize,
+}
+
+impl Range {
+    fn contains(&self, other: &Self) -> bool {
+        return self.start <= other.start && self.end >= other.end;
     }
-    sum
+
+    fn overlaps(&self, other: &Self) -> bool {
+        return self.end >= other.start && other.end >= self.start;
+    }
+}
+
+impl FromStr for Range {
+    type Err = std::string::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let pair: Vec<_> = s.split("-").collect();
+        Ok(Self {
+            start: pair[0].parse().unwrap(),
+            end: pair[1].parse().unwrap(),
+        })
+    }
+}
+
+pub fn part_a(input: &str) -> usize {
+    input
+        .lines()
+        .map(|line| {
+            let ranges: Vec<Range> = line.split(",").flat_map(|s| s.parse::<Range>()).collect();
+            let [a, b] = &ranges[..] else { panic!("Could not parse range!") };
+            (a.contains(b) || b.contains(a)) as usize
+        })
+        .sum()
 }
 
 pub fn part_b(input: &str) -> usize {
-    let mut sum: usize = 0;
-    for mut split in input.lines().map(|l| l.splitn(4, |c| c == '-' || c == ',')) {
-        let l1 = split.next().unwrap().parse::<usize>().unwrap();
-        let l2 = split.next().unwrap().parse::<usize>().unwrap();
-        let r1 = split.next().unwrap().parse::<usize>().unwrap();
-        let r2 = split.next().unwrap().parse::<usize>().unwrap();
-
-        if !(l2 < r1) && !(r2 < l1) {
-            sum = sum + 1;
-        }
-    }
-    sum
+    input
+        .lines()
+        .map(|line| {
+            let ranges: Vec<Range> = line.split(",").flat_map(|s| s.parse::<Range>()).collect();
+            let [a, b] = &ranges[..] else { panic!("Could not parse range!") };
+            a.overlaps(b) as usize
+        })
+        .sum()
 }
 
 #[cfg(test)]
