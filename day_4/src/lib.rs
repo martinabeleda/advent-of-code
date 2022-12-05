@@ -32,22 +32,30 @@ pub fn part_a(input: &str) -> usize {
     input
         .lines()
         .map(|line| {
-            let ranges: Vec<Range> = line.split(",").flat_map(|s| s.parse::<Range>()).collect();
-            let [a, b] = &ranges[..] else { panic!("Could not parse range!") };
-            (a.contains(b) || b.contains(a)) as usize
+            line.split(",")
+                .flat_map(|s| s.parse::<Range>())
+                .collect::<Vec<Range>>()
         })
-        .sum()
+        .filter(|ranges| {
+            let [a, b] = &ranges[..] else { panic!("Could not parse range!") };
+            a.contains(b) || b.contains(a)
+        })
+        .count()
 }
 
 pub fn part_b(input: &str) -> usize {
     input
         .lines()
         .map(|line| {
-            let ranges: Vec<Range> = line.split(",").flat_map(|s| s.parse::<Range>()).collect();
-            let [a, b] = &ranges[..] else { panic!("Could not parse range!") };
-            a.overlaps(b) as usize
+            line.split(",")
+                .flat_map(|s| s.parse::<Range>())
+                .collect::<Vec<Range>>()
         })
-        .sum()
+        .filter(|ranges| {
+            let [a, b] = &ranges[..] else { panic!("Could not parse range!") };
+            a.overlaps(b)
+        })
+        .count()
 }
 
 #[cfg(test)]
