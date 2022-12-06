@@ -1,7 +1,7 @@
 use core::hash::Hash;
 use std::collections::HashSet;
 
-fn has_unqique_elements<T>(iter: T) -> bool
+fn all_unique<T>(iter: T) -> bool
 where
     T: IntoIterator,
     T::Item: Eq + Hash,
@@ -15,7 +15,7 @@ pub fn part_a(input: &str) -> usize {
     let binding = input.chars().collect::<Vec<char>>();
     let win = binding
         .windows(window_size)
-        .position(|x| has_unqique_elements(x))
+        .position(|x| all_unique(x))
         .unwrap();
     win + window_size
 }
@@ -25,7 +25,7 @@ pub fn part_b(input: &str) -> usize {
     let binding = input.chars().collect::<Vec<char>>();
     let win = binding
         .windows(window_size)
-        .position(|x| has_unqique_elements(x))
+        .position(|x| all_unique(x))
         .unwrap();
     win + window_size
 }
