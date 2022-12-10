@@ -53,7 +53,6 @@ pub fn part_a(input: &str) -> usize {
     for i in 1..grid.len() - 1 {
         let row = &grid[i];
         for j in 1..row.len() - 1 {
-            let char = row[j];
             if visible_from_direction(i, j, &grid) {
                 count += 1;
             }
@@ -62,9 +61,67 @@ pub fn part_a(input: &str) -> usize {
     count + count_boundary(&grid)
 }
 
-// pub fn part_b(input: &str) -> usize {
-//     0
-// }
+fn scenic_score(i: usize, j: usize, grid: &Vec<Vec<char>>) -> usize {
+    let height = grid.len();
+    let width = grid[0].len();
+
+    let curr = grid[i][j].to_digit(10).unwrap();
+    let mut top = 0;
+    for x in (0..i).rev() {
+        let tree = grid[x][j].to_digit(10).unwrap();
+        top += 1;
+        if tree >= curr {
+            break;
+        }
+    }
+
+    let mut bottom = 0;
+    for x in i + 1..height {
+        let tree = grid[x][j].to_digit(10).unwrap();
+        bottom += 1;
+        if tree >= curr {
+            break;
+        }
+    }
+
+    let mut left = 0;
+    for y in (0..j).rev() {
+        let tree = grid[i][y].to_digit(10).unwrap();
+        left += 1;
+        if tree >= curr {
+            break;
+        }
+    }
+
+    let mut right = 0;
+    for y in j + 1..width {
+        let tree = grid[i][y].to_digit(10).unwrap();
+        right += 1;
+        if tree >= curr {
+            break;
+        }
+    }
+    top * bottom * left * right
+}
+
+pub fn part_b(input: &str) -> usize {
+    let mut grid: Vec<Vec<char>> = Vec::new();
+    for line in input.lines() {
+        grid.push(line.chars().collect::<Vec<char>>());
+    }
+
+    let mut max = 0;
+    for i in 1..grid.len() - 1 {
+        let row = &grid[i];
+        for j in 1..row.len() - 1 {
+            let score = scenic_score(i, j, &grid);
+            if score > max {
+                max = score;
+            }
+        }
+    }
+    max
+}
 
 #[cfg(test)]
 mod tests {
@@ -75,16 +132,16 @@ mod tests {
 
     #[test]
     fn part_a() {
-        assert_eq!(super::part_a(include_str!("input.txt")), 0);
+        assert_eq!(super::part_a(include_str!("input.txt")), 1840);
     }
 
-    // #[test]
-    // fn part_b_sample() {
-    //     assert_eq!(super::part_b(include_str!("sample.txt")), 0);
-    // }
-    //
-    // #[test]
-    // fn part_b() {
-    //     assert_eq!(super::part_b(include_str!("input.txt")), 0);
-    // }
+    #[test]
+    fn part_b_sample() {
+        assert_eq!(super::part_b(include_str!("sample.txt")), 8);
+    }
+
+    #[test]
+    fn part_b() {
+        assert_eq!(super::part_b(include_str!("input.txt")), 405769);
+    }
 }
