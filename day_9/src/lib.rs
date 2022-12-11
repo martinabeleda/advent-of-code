@@ -1,151 +1,128 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, str::FromStr, string::ParseError};
 
-fn move_h(h_pos: &mut (i32, i32), dir: &str) {
-    match dir {
-        "R" => {
-            h_pos.1 += 1;
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Rope {
+    x: isize,
+    y: isize,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum Direction {
+    N,
+    S,
+    E,
+    W,
+    NE,
+    NW,
+    SE,
+    SW,
+}
+
+impl FromStr for Direction {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "R" => Ok(Direction::E),
+            "L" => Ok(Direction::W),
+            "D" => Ok(Direction::S),
+            "U" => Ok(Direction::N),
+            _ => panic!(),
         }
-        "U" => {
-            h_pos.0 += 1;
-        }
-        "D" => {
-            h_pos.0 -= 1;
-        }
-        "L" => {
-            h_pos.1 -= 1;
-        }
-        _ => panic!("Invalid move {}", dir),
     }
 }
 
-fn move_t(
-    mut t_moves: Option<&mut HashSet<(i32, i32)>>,
-    h_pos: (i32, i32),
-    t_pos: &mut (i32, i32),
-    dir: &str,
-) {
-    match dir {
-        "R" => {
-            let (y_dist, x_dist) = dist(h_pos, *t_pos);
-            if x_dist == 2 && y_dist == 0 {
-                t_pos.1 += 1;
-            } else if x_dist == 2 && y_dist == 1 {
-                t_pos.1 += 1;
-                t_pos.0 += if h_pos.0 - t_pos.0 > 0 { 1 } else { -1 }
-            }
-        }
-        "U" => {
-            let (y_dist, x_dist) = dist(h_pos, *t_pos);
-            if y_dist == 2 && x_dist == 0 {
-                t_pos.0 += 1;
-            } else if y_dist == 2 && x_dist == 1 {
-                t_pos.0 += 1;
-                t_pos.1 += if h_pos.1 - t_pos.1 > 0 { 1 } else { -1 }
-            }
-        }
-        "D" => {
-            let (y_dist, x_dist) = dist(h_pos, *t_pos);
-            if y_dist == 2 && x_dist == 0 {
-                t_pos.0 -= 1;
-            } else if y_dist == 2 && x_dist == 1 {
-                t_pos.0 -= 1;
-                t_pos.1 += if h_pos.1 - t_pos.1 > 0 { 1 } else { -1 }
-            }
-        }
-        "L" => {
-            let (y_dist, x_dist) = dist(h_pos, *t_pos);
-            if x_dist == 2 && y_dist == 0 {
-                t_pos.1 -= 1;
-            } else if x_dist == 2 && y_dist == 1 {
-                t_pos.1 -= 1;
-                t_pos.0 += if h_pos.0 - t_pos.0 > 0 { 1 } else { -1 }
-            }
-        }
-        _ => panic!("Invalid move {}", dir),
+impl Rope {
+    fn new(x: isize, y: isize) -> Self {
+        Self { x, y }
     }
-    match t_moves {
-        Some(ref mut h) => {
-            h.insert(*t_pos);
-        }
-        None => (),
-    };
-}
 
-fn dist(h_pos: (i32, i32), t_pos: (i32, i32)) -> (i32, i32) {
-    ((h_pos.0 - t_pos.0).abs(), (h_pos.1 - t_pos.1).abs())
+    fn mov(&mut self, dir: Direction) {
+        match dir {
+            Direction::E => self.x += 1,
+            Direction::W => self.x -= 1,
+            Direction::S => self.y -= 1,
+            Direction::N => self.y += 1,
+            Direction::NE => {
+                self.mov(Direction::N);
+                self.mov(Direction::E);
+            }
+            Direction::NW => {
+                self.mov(Direction::N);
+                self.mov(Direction::W);
+            }
+            Direction::SE => {
+                self.mov(Direction::S);
+                self.mov(Direction::E);
+            }
+            Direction::SW => {
+                self.mov(Direction::S);
+                self.mov(Direction::W);
+            }
+        };
+    }
+
+    fn dist(&self, other: &Self) -> isize {
+        (self.x - other.x).pow(2) + (self.y - other.y).pow(2)
+    }
+
+    /// return the direction for `other` to move based on the position of `self`
+    fn compare(&self, other: &Self) -> Option<Direction> {
+        // single diagonal or same row
+        if self.dist(other) <= 2 {
+            return None;
+        }
+
+        if self.x == other.x {
+            if self.y > other.y {
+                return Some(Direction::N);
+            } else {
+                return Some(Direction::S);
+            }
+        }
+        if self.y == other.y {
+            if self.x > other.x {
+                return Some(Direction::E);
+            } else {
+                return Some(Direction::W);
+            }
+        }
+
+        if self.x > other.x {
+            if self.y > other.y {
+                return Some(Direction::NE);
+            } else {
+                return Some(Direction::SE);
+            }
+        } else {
+            if self.y > other.y {
+                return Some(Direction::NW);
+            } else {
+                return Some(Direction::SW);
+            }
+        }
+    }
 }
 
 pub fn part_a(input: &str) -> usize {
-    let mut t_pos = (0, 0);
-    let mut h_pos = (0, 0);
-    let mut t_moves: HashSet<(i32, i32)> = HashSet::new();
-    t_moves.insert(t_pos);
+    let mut head = Rope::new(0, 0);
+    let mut tail = Rope::new(0, 0);
+    let mut counter = HashSet::new();
+    counter.insert((tail.x, tail.y));
 
     for line in input.lines() {
-        let (direction, steps) = line.split_once(" ").unwrap();
-        let steps = steps.parse::<usize>().unwrap();
+        let dm: Vec<_> = line.split_whitespace().collect();
+        let dir = Direction::from_str(dm[0]).unwrap();
+        let steps = usize::from_str(dm[1]).unwrap();
         for _ in 0..steps {
-            move_h(&mut h_pos, direction);
-            move_t(Some(&mut t_moves), h_pos, &mut t_pos, direction);
-        }
-    }
-    t_moves.len()
-}
-
-fn move_t_b(
-    mut t_moves: Option<&mut HashSet<(i32, i32)>>,
-    h_pos: (i32, i32),
-    t_pos: &mut (i32, i32),
-    dir: &str,
-) {
-    if !((h_pos.0 - t_pos.0).abs() >= 1 && (h_pos.1 - t_pos.1).abs() >= 1) {
-        if h_pos.1 > t_pos.1 {
-            t_pos.1 += 1;
-        } else if h_pos.1 < t_pos.1 {
-            t_pos.1 -= 1;
-        }
-        if h_pos.0 > t_pos.0 {
-            t_pos.0 += 1
-        } else if h_pos.0 < t_pos.0 {
-            t_pos.0 -= 1
-        }
-    }
-    match t_moves {
-        Some(ref mut h) => {
-            h.insert(*t_pos);
-        }
-        None => (),
-    };
-}
-
-pub fn part_b(input: &str) -> usize {
-    let mut h_pos = (0, 0);
-    let mut t_poses = vec![(0, 0); 9];
-
-    let mut t_moves: HashSet<(i32, i32)> = HashSet::new();
-    t_moves.insert(t_poses[t_poses.len() - 1]);
-
-    for line in input.lines() {
-        let (direction, steps) = line.split_once(" ").unwrap();
-        let steps = steps.parse::<usize>().unwrap();
-        for _ in 0..steps {
-            move_h(&mut h_pos, direction);
-            move_t_b(Some(&mut t_moves), h_pos, &mut t_poses[0], direction);
-
-            // println!("line: {}, h_pos: {:?}, t_poses: {:?}", line, h_pos, t_poses);
-            // Move each knot
-            for i in 1..t_poses.len() {
-                let tmp = if i == t_poses.len() - 1 {
-                    Some(&mut t_moves)
-                } else {
-                    None
-                };
-                move_t_b(tmp, t_poses[i - 1], &mut t_poses[i], direction);
+            head.mov(dir);
+            if let Some(dir) = head.compare(&tail) {
+                tail.mov(dir);
             }
-            println!("i={} h_pos={:?}, t_poses={:?}", line, h_pos, t_poses);
+            counter.insert((tail.x, tail.y));
         }
     }
-    t_moves.len()
+    counter.len()
 }
 
 #[cfg(test)]
@@ -160,10 +137,10 @@ mod tests {
         assert_eq!(super::part_a(include_str!("input.txt")), 6332);
     }
 
-    #[test]
-    fn part_b_sample() {
-        assert_eq!(super::part_b(include_str!("sample.txt")), 36);
-    }
+    // #[test]
+    // fn part_b_sample() {
+    //     assert_eq!(super::part_b(include_str!("sample.txt")), 36);
+    // }
 
     // #[test]
     // fn part_b() {
