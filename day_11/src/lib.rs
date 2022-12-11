@@ -51,6 +51,16 @@ struct Monkey {
     inspect_count: usize,
 }
 
+impl Monkey {
+    fn build(input: &str) -> Vec<Monkey> {
+        input
+            .trim()
+            .split("\n\n")
+            .map(|s| s.parse::<Monkey>().unwrap())
+            .collect()
+    }
+}
+
 impl FromStr for Monkey {
     type Err = ParseError;
 
@@ -108,14 +118,8 @@ impl FromStr for Monkey {
     }
 }
 
-pub fn part_a(input: &str) -> usize {
-    let mut monkeys: Vec<Monkey> = input
-        .trim()
-        .split("\n\n")
-        .map(|s| s.parse::<Monkey>().unwrap())
-        .collect();
-
-    for _ in 0..20 {
+fn solve(monkeys: &mut Vec<Monkey>, rounds: usize, worry_fn: impl Fn(usize) -> usize) -> usize {
+    for _ in 0..rounds {
         for i in 0..monkeys.len() {
             let monkey = &mut monkeys[i];
             let mut output: HashMap<usize, VecDeque<usize>> = HashMap::new();
@@ -129,12 +133,10 @@ pub fn part_a(input: &str) -> usize {
                     Term::Old => item,
                     Term::Val(x) => x,
                 };
-                let worry = match monkey.operation {
+                let worry = worry_fn(match monkey.operation {
                     Operation::Plus => left + right,
                     Operation::Multiply => left * right,
-                };
-
-                let worry = worry / 3;
+                });
                 if worry % monkey.divisor == 0 {
                     output
                         .entry(monkey.t_monkey)
@@ -159,8 +161,15 @@ pub fn part_a(input: &str) -> usize {
     res.iter().take(2).fold(1, |acc, x| acc * x)
 }
 
+pub fn part_a(input: &str) -> usize {
+    let mut monkeys = Monkey::build(input);
+    solve(&mut monkeys, 20, |x| x / 3)
+}
+
 pub fn part_b(input: &str) -> usize {
-    0
+    let mut monkeys = Monkey::build(input);
+    let modulus: usize = monkeys.iter().map(|m| m.divisor).product();
+    solve(&mut monkeys, 10_000, |x| x % modulus)
 }
 
 #[cfg(test)]
@@ -175,13 +184,13 @@ mod tests {
         assert_eq!(super::part_a(include_str!("input.txt")), 76728);
     }
 
-    // #[test]
-    // fn part_b_sample() {
-    //     assert_eq!(super::part_b(include_str!("sample.txt")), 0);
-    // }
-    //
-    // #[test]
-    // fn part_b() {
-    //     assert_eq!(super::part_b(include_str!("input.txt")), 0);
-    // }
+    #[test]
+    fn part_b_sample() {
+        assert_eq!(super::part_b(include_str!("sample.txt")), 2713310158);
+    }
+
+    #[test]
+    fn part_b() {
+        assert_eq!(super::part_b(include_str!("input.txt")), 21553910156);
+    }
 }
