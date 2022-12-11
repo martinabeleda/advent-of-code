@@ -125,6 +125,31 @@ pub fn part_a(input: &str) -> usize {
     counter.len()
 }
 
+pub fn part_b(input: &str) -> usize {
+    let len = 10;
+    let mut ropes = vec![Rope::new(0, 0); len];
+    let mut counter = HashSet::new();
+    counter.insert((ropes[len - 1].x, ropes[len - 1].y));
+
+    for line in input.lines() {
+        let dm: Vec<_> = line.split_whitespace().collect();
+        let dir = Direction::from_str(dm[0]).unwrap();
+        let steps = usize::from_str(dm[1]).unwrap();
+        for _ in 0..steps {
+            ropes[0].mov(dir);
+            let mut head = ropes[0];
+            for tail in ropes[1..].iter_mut() {
+                if let Some(dir) = head.compare(&tail) {
+                    tail.mov(dir);
+                }
+                head = *tail;
+            }
+            counter.insert((ropes[len - 1].x, ropes[len - 1].y));
+        }
+    }
+    counter.len()
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -137,13 +162,13 @@ mod tests {
         assert_eq!(super::part_a(include_str!("input.txt")), 6332);
     }
 
-    // #[test]
-    // fn part_b_sample() {
-    //     assert_eq!(super::part_b(include_str!("sample.txt")), 36);
-    // }
+    #[test]
+    fn part_b_sample() {
+        assert_eq!(super::part_b(include_str!("sample_b.txt")), 36);
+    }
 
-    // #[test]
-    // fn part_b() {
-    //     assert_eq!(super::part_b(include_str!("input.txt")), 0);
-    // }
+    #[test]
+    fn part_b() {
+        assert_eq!(super::part_b(include_str!("input.txt")), 2511);
+    }
 }
